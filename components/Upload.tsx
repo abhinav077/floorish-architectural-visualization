@@ -54,7 +54,7 @@ const Upload = ({ onComplete }: UploadProps) => {
     if (nextFile.size > MAX_UPLOAD_FILE_SIZE_BYTES) return;
 
     const fileExtension = nextFile.name.split(".").pop()?.toLowerCase();
-    const hasAllowedType = ALLOWED_MIME_TYPES.has(nextFile.type.toLowerCase());
+    const hasAllowedType = .has(nextFile.type.toLowerCase());
     const hasAllowedExtension = fileExtension
       ? ALLOWED_EXTENSIONS.has(fileExtension)
       : false;
