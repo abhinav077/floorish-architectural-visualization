@@ -12,6 +12,10 @@ type UploadProps = {
   onComplete?: (base64Data: string) => void;
 };
 
+const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
+const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png"]);
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+
 const Upload = ({ onComplete }: UploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -46,6 +50,15 @@ const Upload = ({ onComplete }: UploadProps) => {
 
   const processFile = (nextFile: File) => {
     if (!isSignedIn) return;
+    if (nextFile.size > MAX_FILE_SIZE_BYTES) return;
+
+    const fileExtension = nextFile.name.split(".").pop()?.toLowerCase();
+    const hasAllowedType = ALLOWED_MIME_TYPES.has(nextFile.type.toLowerCase());
+    const hasAllowedExtension = fileExtension
+      ? ALLOWED_EXTENSIONS.has(fileExtension)
+      : false;
+
+    if (!hasAllowedType && !hasAllowedExtension) return;
 
     resetTimers();
     setFile(nextFile);
