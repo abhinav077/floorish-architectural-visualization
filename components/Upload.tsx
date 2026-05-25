@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router";
 
 import {
+  MAX_UPLOAD_FILE_SIZE_BYTES,
+  MAX_UPLOAD_FILE_SIZE_MB,
   PROGRESS_INCREMENT,
   PROGRESS_INTERVAL_MS,
   REDIRECT_DELAY_MS,
@@ -14,7 +16,6 @@ type UploadProps = {
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png"]);
-const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 const Upload = ({ onComplete }: UploadProps) => {
   const [file, setFile] = useState<File | null>(null);
@@ -50,7 +51,7 @@ const Upload = ({ onComplete }: UploadProps) => {
 
   const processFile = (nextFile: File) => {
     if (!isSignedIn) return;
-    if (nextFile.size > MAX_FILE_SIZE_BYTES) return;
+    if (nextFile.size > MAX_UPLOAD_FILE_SIZE_BYTES) return;
 
     const fileExtension = nextFile.name.split(".").pop()?.toLowerCase();
     const hasAllowedType = ALLOWED_MIME_TYPES.has(nextFile.type.toLowerCase());
@@ -154,7 +155,7 @@ const Upload = ({ onComplete }: UploadProps) => {
                 ? "Drag and drop your floor plan here, or click to select a file."
                 : "Please sign in to upload your floor plan."}
             </p>
-            <p className="help">Maximum file size 50MB</p>
+            <p className="help">Maximum file size {MAX_UPLOAD_FILE_SIZE_MB}MB</p>
           </div>
         </div>
       ) : (
