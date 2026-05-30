@@ -52,6 +52,7 @@ const DEFAULT_AUTH_STATE : AuthState = {
 export default function App() {
 
   const [authState, setAuthState] = useState<AuthState>(DEFAULT_AUTH_STATE);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const refreshAuth = async() => {
     try {
@@ -62,6 +63,10 @@ export default function App() {
         userName: user?.username || null,
         userId: user?.uuid || null,
       })
+
+      if (user) {
+        setAuthError(null);
+      }
 
       return !!user;
     }
@@ -76,11 +81,45 @@ export default function App() {
   },[])
 
   const signIn = async () => {
-    await puterSignIn();
-    return await refreshAuth();
+    setAuthError(null);
+
+    try {
+      let timeoutId: number | undefined;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(() => {
+          reject(
+            new Error(
+              "Sign-in did not complete. Allow popups for this site and try again."
+            )
+          );
+        }, 15000);
+      });
+
+      try {
+        await Promise.race([puterSignIn(), timeoutPromise]);
+      } finally {
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      }
+
+      const signedIn = await refreshAuth();
+
+      if (!signedIn) {
+        throw new Error("Sign-in finished, but no user session was returned.");
+      }
+
+      return true;
+    } catch (error) {
+      setAuthError(
+        error instanceof Error
+          ? error.message
+          : "Unable to sign in right now. Check popup permissions and try again."
+      );
+      return false;
+    }
   }
 
   const signOut = async () => {
+    setAuthError(null);
     await puterSignOut();
     return await refreshAuth();
   }
@@ -90,6 +129,7 @@ export default function App() {
       <Outlet 
         context={{
           ...authState,
+          authError,
           refreshAuth,
           signIn,
           signOut,

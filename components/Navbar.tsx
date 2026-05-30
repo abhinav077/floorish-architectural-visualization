@@ -5,7 +5,7 @@ import { useOutletContext } from 'react-router';
 
 const Navbar = () => {
 
-    const  {isSignedIn, userName, signIn, signOut} = useOutletContext<AuthState>();
+    const  {isSignedIn, userName, authError, signIn, signOut} = useOutletContext<AuthContext>();
     
     const handleAuthClick = async() => {
         if(isSignedIn) {
@@ -71,6 +71,8 @@ const Navbar = () => {
             </div>    
 
         </nav>
+
+        {authError ? <p className='auth-error'>{authError}</p> : null}
     </header>
   )
 }
