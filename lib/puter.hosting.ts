@@ -10,10 +10,15 @@ import {
 } from "./utils";
 
 export const getOrCreateHostingConfig = async (): Promise<HostingConfig | null> => {
-    const existing = (await puter.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
+    let existing: HostingConfig | null = null;
 
-    if(existing?.subdomain) return { subdomain: existing.subdomain };
+    try {
+        existing = (await puter.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
+    } catch (e) {
+        console.warn(`Failed to read hosting config: ${e}`);
+    }
 
+    if (existing?.subdomain) return { subdomain: existing.subdomain };
     const subdomain = createHostingSlug();
 
     try {
