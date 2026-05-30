@@ -84,18 +84,22 @@ export default function App() {
     setAuthError(null);
 
     try {
-      await Promise.race([
-        puterSignIn(),
-        new Promise((_, reject) =>
-          window.setTimeout(() => {
-            reject(
-              new Error(
-                "Sign-in did not complete. Allow popups for this site and try again."
-              )
-            );
-          }, 15000)
-        ),
-      ]);
+      let timeoutId: number | undefined;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(() => {
+          reject(
+            new Error(
+              "Sign-in did not complete. Allow popups for this site and try again."
+            )
+          );
+        }, 15000);
+      });
+
+      try {
+        await Promise.race([puterSignIn(), timeoutPromise]);
+      } finally {
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      }
 
       const signedIn = await refreshAuth();
 
