@@ -42,10 +42,10 @@ export default function Home() {
     navigate(`/visualizer/${newID}`, {
       state: {
         initialImage: saved.sourceImage,
-        initialRendered: saved.renderedImage || null,
+        initialRender: saved.renderedImage || null,
         name,
       },
-    })
+    });
 
     return true;
   };
