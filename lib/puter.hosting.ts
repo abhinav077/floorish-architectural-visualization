@@ -1,49 +1,43 @@
-import { puter } from "@heyputer/puter.js";
+import puter from "@heyputer/puter.js";
 import {
-    HOSTING_CONFIG_KEY,
     createHostingSlug,
-    fetchBlobFromUrl,
-    getHostedUrl,
+    fetchBlobFromUrl, getHostedUrl,
     getImageExtension,
+    HOSTING_CONFIG_KEY,
     imageUrlToPngBlob,
-    isHostedUrl,
+    isHostedUrl
 } from "./utils";
 
 export const getOrCreateHostingConfig = async (): Promise<HostingConfig | null> => {
-    let existing: HostingConfig | null = null;
+    const existing = (await puter.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
 
-    try {
-        existing = (await puter.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
-    } catch (e) {
-        console.warn(`Failed to read hosting config: ${e}`);
-    }
+    if(existing?.subdomain) return { subdomain: existing.subdomain };
 
-    if (existing?.subdomain) return { subdomain: existing.subdomain };
     const subdomain = createHostingSlug();
 
     try {
         const created = await puter.hosting.create(subdomain, '.');
-        const config = { subdomain: created.subdomain };
 
-        await puter.kv.set(HOSTING_CONFIG_KEY, config);
+        const record = { subdomain: created.subdomain };
 
-        return config;
-        
+        await puter.kv.set(HOSTING_CONFIG_KEY, record);
+
+        return record;
     } catch (e) {
         console.warn(`Could not find subdomain: ${e}`);
         return null;
     }
 }
 
-export const uploadImageToHosting = async ({hosting, url, projectId, label}:StoreHostedImageParams): Promise<HostedAsset | null> => {
+export const uploadImageToHosting = async ({ hosting, url, projectId, label }: StoreHostedImageParams): Promise<HostedAsset | null> => {
     if(!hosting || !url) return null;
     if(isHostedUrl(url)) return { url };
 
     try {
-        const resolved = label === "rendered" 
-        ? await imageUrlToPngBlob(url)
-            .then((blob) => blob ? { blob, contentType: 'image/png'} : null)
-        : await fetchBlobFromUrl(url);
+        const resolved = label === "rendered"
+            ? await imageUrlToPngBlob(url)
+                .then((blob) => blob ? { blob, contentType: 'image/png' }: null)
+            : await fetchBlobFromUrl(url);
 
         if(!resolved) return null;
 
@@ -52,18 +46,18 @@ export const uploadImageToHosting = async ({hosting, url, projectId, label}:Stor
         const dir = `projects/${projectId}`;
         const filePath = `${dir}/${label}.${ext}`;
 
-        const uploadFile = new File([resolved.blob], `${label}.${ext}`, { type: contentType });
+        const uploadFile = new File([resolved.blob], `${label}.${ext}`, {
+            type: contentType,
+        });
 
-        await puter.fs.mkdir(dir, {createMissingParents: true});
+        await puter.fs.mkdir(dir, { createMissingParents: true });
         await puter.fs.write(filePath, uploadFile);
-        
-        const hostedUrl = getHostedUrl({ subdomain: hosting.subdomain }, filePath);
-        return hostedUrl ? { url: hostedUrl } : null;
 
-    }catch(e){
-        console.warn(`Failed to store the hosted image: ${e}`);
+        const hostedUrl = getHostedUrl({ subdomain: hosting.subdomain }, filePath);
+
+        return hostedUrl ? { url: hostedUrl } : null;
+    } catch (e) {
+        console.warn(`Failed to store hosted image: ${e}`);
         return null;
     }
-
-
 }
