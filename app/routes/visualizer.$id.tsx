@@ -8,12 +8,12 @@ import Button from '../../components/ui/Button';
 const VisualizerId = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { initialImage, initialRendered, name } = location.state || {};
+  const { initialImage, initialRender, name } = location.state || {};
 
   const hasInitialGenerated = useRef(false);
 
   const[isProcessing, setIsProcessing] = useState(false);
-  const[currentImage, setCurrentImage] = useState<string | null>(initialRendered || null);
+  const[currentImage, setCurrentImage] = useState<string | null>(initialRender || null);
 
   const handleBack = () => navigate('/');
 
