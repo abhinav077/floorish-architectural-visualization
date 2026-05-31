@@ -35,10 +35,10 @@ const VisualizerId = () => {
   }
 
   useEffect(() => {
-    if(!initialImage && !hasInitialGenerated.current) return;
+    if(!initialImage || hasInitialGenerated.current) return;
     
-    if(initialRendered) {
-      setCurrentImage(initialRendered);
+    if(initialRender) {
+      setCurrentImage(initialRender);
       hasInitialGenerated.current = true;
       return;
     }
@@ -46,7 +46,7 @@ const VisualizerId = () => {
     hasInitialGenerated.current = true;
     runGeneration();
   
-  }, [initialImage, initialRendered])
+  }, [initialImage, initialRender])
 
   return (
 
